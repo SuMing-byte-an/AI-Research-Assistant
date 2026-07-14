@@ -23,6 +23,24 @@
  结构化报告  偏多/偏空/中性 技术面报告
 ```
 
+## 运行效果截图
+
+### 工作流总览
+
+![Workflow Overview](docs/screenshots/workflow_overview.png)
+
+### 基本面分支示例（知识库检索）
+
+查询腾讯 2025 年营销服务收入同比增速，系统从财报知识库中定位到相关段落并给出结构化分析。
+
+![Fundamental Branch](docs/screenshots/fundamental_branch.png)
+
+### 市场情绪分支示例（Serper 实时搜索）
+
+查询腾讯近期游戏和广告业务动态，系统通过 Google 实时搜索获取市场舆情，输出中性情绪判断。
+
+![Sentiment Branch](docs/screenshots/sentiment_branch.png)
+
 ## 项目组成
 
 ### 1. Dify 工作流 DSL (`dify/workflow_dsl.yml`)
