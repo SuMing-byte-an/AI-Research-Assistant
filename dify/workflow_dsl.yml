@@ -1,11 +1,27 @@
 app:
-  description: 接收用户的查询，利用分类器判断意图，然后分别调用本地知识库检索、实时搜索和量化数据计算，最后由大模型统一汇总输出结构化报告。
-  icon: "\U0001F916"
+  description: 接收用户的查询，利用分类器判断意图，然后分别调用外部 API、本地知识库检索和 Python 代码执行节点，最后由大模型统一汇总输出结构化报告。
+  icon: 🤖
   icon_background: '#FFEAD5'
   icon_type: emoji
   mode: workflow
   name: AI 投研多路融合分析助手
   use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/deepseek:0.0.19@5b68617c637b62d31e7f33a9f5677b76e88f81868fb04a728e208588564b72ea
+    version: null
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/serper:0.0.7@76f66a0eda2698a74d7b13f3e2ea6da676f214fa11ea3ea2a009714c492722b0
+    version: null
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/siliconflow:0.0.57@5805804fa59515fc5d02d12b6fbc0fc521791a053059fb04f77be3829b484ee2
+    version: null
 kind: app
 version: 0.6.0
 workflow:
@@ -18,173 +34,264 @@ workflow:
     value: ''
   features:
     file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
       enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 50
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
     opening_statement: ''
     retriever_resource:
       enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
     suggested_questions_after_answer:
       enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
   graph:
     edges:
     - data:
+        isInLoop: false
         sourceType: start
         targetType: question-classifier
-      id: start-classifier
-      source: start
+      id: 1783753345838-source-1783753110505-target
+      selected: false
+      source: '1783753345838'
       sourceHandle: source
-      target: classifier
+      target: '1783753110505'
       targetHandle: target
       type: custom
+      zIndex: 0
     - data:
+        isInLoop: false
         sourceType: question-classifier
         targetType: knowledge-retrieval
-      id: classifier-fundamental-kb
-      source: classifier
+      id: 1783753110505-1-1783846328284-target
+      selected: false
+      source: '1783753110505'
       sourceHandle: '1'
-      target: kb_retrieval
+      target: '1783846328284'
       targetHandle: target
       type: custom
+      zIndex: 0
     - data:
+        isInLoop: false
         sourceType: knowledge-retrieval
         targetType: llm
-      id: kb-llm
-      source: kb_retrieval
+      id: 1783846328284-source-1783849457766-target
+      selected: false
+      source: '1783846328284'
       sourceHandle: source
-      target: llm_fundamental
+      target: '1783849457766'
       targetHandle: target
       type: custom
+      zIndex: 0
     - data:
+        isInIteration: false
+        isInLoop: false
         sourceType: llm
         targetType: end
-      id: llm-fundamental-end
-      source: llm_fundamental
+      id: 1783849457766--1783849918047-target
+      selected: false
+      source: '1783849457766'
       sourceHandle: source
-      target: end_fundamental
+      target: '1783849918047'
       targetHandle: target
       type: custom
+      zIndex: 0
     - data:
-        sourceType: question-classifier
-        targetType: tool
-      id: classifier-sentiment-serper
-      source: classifier
-      sourceHandle: '2'
-      target: serper_search
-      targetHandle: target
-      type: custom
-    - data:
-        sourceType: tool
-        targetType: llm
-      id: serper-llm
-      source: serper_search
-      sourceHandle: source
-      target: llm_sentiment
-      targetHandle: target
-      type: custom
-    - data:
-        sourceType: llm
-        targetType: end
-      id: llm-sentiment-end
-      source: llm_sentiment
-      sourceHandle: source
-      target: end_sentiment
-      targetHandle: target
-      type: custom
-    - data:
+        isInLoop: false
         sourceType: question-classifier
         targetType: http-request
-      id: classifier-quant-http
-      source: classifier
-      sourceHandle: '3'
-      target: tushare_http
+      id: 1783753110505-1783754444062-1783921892044-target
+      selected: false
+      source: '1783753110505'
+      sourceHandle: '1783754444062'
+      target: '1783921892044'
       targetHandle: target
       type: custom
+      zIndex: 0
     - data:
-        sourceType: http-request
-        targetType: code
-      id: http-code
-      source: tushare_http
-      sourceHandle: source
-      target: quant_compute
-      targetHandle: target
-      type: custom
-    - data:
+        isInLoop: false
         sourceType: code
         targetType: llm
-      id: code-llm
-      source: quant_compute
+      id: 1783996135613-source-1783996431126-target
+      selected: false
+      source: '1783996135613'
       sourceHandle: source
-      target: llm_quant
+      target: '1783996431126'
       targetHandle: target
       type: custom
+      zIndex: 0
     - data:
+        isInLoop: false
         sourceType: llm
         targetType: end
-      id: llm-quant-end
-      source: llm_quant
+      id: 1783996431126-source-1783996646956-target
+      selected: false
+      source: '1783996431126'
       sourceHandle: source
-      target: end_quant
+      target: '1783996646956'
       targetHandle: target
       type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: http-request
+        targetType: code
+      id: 1783921892044-source-1783996135613-target
+      source: '1783921892044'
+      sourceHandle: source
+      target: '1783996135613'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: tool
+      id: 1783753110505-2-1784000236368-target
+      source: '1783753110505'
+      sourceHandle: '2'
+      target: '1784000236368'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: tool
+        targetType: llm
+      id: 1784000236368-source-1784007013296-target
+      source: '1784000236368'
+      sourceHandle: source
+      target: '1784007013296'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: end
+      id: 1784007013296-source-1783999157754-target
+      source: '1784007013296'
+      sourceHandle: source
+      target: '1783999157754'
+      targetHandle: target
+      type: custom
+      zIndex: 0
     nodes:
     - data:
+        selected: false
         title: 用户输入
         type: start
         variables:
-        - label: user_query
-          variable: user_query
-          type: text-input
-          required: true
-          default: '帮我分析一下这家公司近期的财务表现和市场情绪。'
+        - default: 帮我分析一下这家公司近期的财务表现和市场情绪。
+          hint: ''
+          label: user_query
           max_length: 256
-        - label: stock_symbol
-          variable: stock_symbol
+          options: []
+          placeholder: ''
+          required: true
           type: text-input
-          required: false
-          default: '00700.HK'
+          variable: user_query
+        - default: 00700.HK
+          hint: ''
+          label: stock_symbol
           max_length: 20
-      id: start
-      type: custom
-      width: 242
+          options: []
+          placeholder: ''
+          required: false
+          type: text-input
+          variable: stock_symbol
       height: 135
+      id: '1783753345838'
       position:
         x: 80
         y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
     - data:
-        title: 问题分类器
-        type: question-classifier
-        model:
-          mode: chat
-          name: deepseek-v4-pro
-          provider: langgenius/deepseek/deepseek
-          completion_params:
-            temperature: 0.1
-            max_tokens: 128
         classes:
         - id: '1'
           label: fundamental
-          name: '当用户询问公司的基本面、财报数据、营收表现、利润率、净利润、债务情况或者财务健康度时，路由到此分支。例如："分析一下这家公司的财务状况"'
+          name: 当用户询问公司的基本面、财报数据、营收表现、利润率、净利润、债务情况或者财务健康度时，路由到此分支。例如："分析一下这家公司的财务状况"。
         - id: '2'
           label: sentiment
-          name: '当用户询问市场情绪、近期新闻、热点舆情、宏观事件、行业科技动态或大众对该股票的态度时，路由到此分支。例如："最近有什么利好新闻吗"'
-        - id: '3'
+          name: 当用户询问市场情绪、近期新闻、热点舆情、宏观事件、行业科技动态或大众对该股票的态度时，路由到此分支。例如："最近有什么利好新闻吗"。
+        - id: '1783754444062'
           label: quant
-          name: '当用户询问技术面指标、量化因子、K线走势、均线背离、资金流向或交易信号预警时，路由到此分支。例如："目前技术面上有什么风险"'
+          name: 当用户询问技术面指标、量化因子、K线走势、均线背离、资金流向或交易信号预警时，路由到此分支。例如："目前技术面上有什么风险"。
+        model:
+          completion_params:
+            max_tokens: 128
+            temperature: 0.1
+            thinking: false
+            top_p: 1
+          mode: chat
+          name: deepseek-v4-pro
+          provider: langgenius/deepseek/deepseek
         query_variable_selector:
-        - start
+        - '1783753345838'
         - user_query
-      id: classifier
-      type: custom
-      width: 242
+        selected: false
+        title: 问题分类器
+        type: question-classifier
+        vision:
+          enabled: false
       height: 220
+      id: '1783753110505'
       position:
         x: 409
         y: 303
+      positionAbsolute:
+        x: 409
+        y: 303
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
     - data:
-        title: 知识检索
-        type: knowledge-retrieval
         dataset_ids:
         - '<YOUR_DATASET_ID>'
-        retrieval_mode: multiple
+        metadata_filtering_mode: automatic
         multiple_retrieval_config:
           reranking_enable: true
           reranking_mode: reranking_model
@@ -193,258 +300,414 @@ workflow:
             provider: langgenius/siliconflow/siliconflow
           score_threshold: 0.1
           top_k: 5
+        query_attachment_selector: []
         query_variable_selector:
-        - start
+        - '1783753345838'
         - user_query
-      id: kb_retrieval
+        retrieval_mode: multiple
+        selected: false
+        title: 知识检索
+        type: knowledge-retrieval
+      height: 90
+      id: '1783846328284'
+      position:
+        x: 690.4616602000784
+        y: 303
+      positionAbsolute:
+        x: 690.4616602000784
+        y: 303
+      selected: false
+      sourcePosition: right
+      targetPosition: left
       type: custom
       width: 242
-      height: 90
-      position:
-        x: 690
-        y: 303
     - data:
-        title: LLM - 基本面分析
-        type: llm
-        model:
-          mode: chat
-          name: deepseek-v4-pro
-          provider: langgenius/deepseek/deepseek
-          completion_params:
-            temperature: 0.7
         context:
           enabled: true
           variable_selector:
-          - kb_retrieval
+          - '1783846328284'
           - result
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: deepseek-v4-pro
+          provider: langgenius/deepseek/deepseek
         prompt_template:
-        - role: system
-          text: |
-            请基于以下上下文回答问题：{{#context#}}
+        - id: 9dc6424d-8acd-4265-b702-fbdff57f4344
+          role: system
+          text: '你是一位资深投研分析师，专注于港股上市公司的基本面研究。
 
-            角色设定：你是一名专业的金融分析师。
-            任务：请根据提供的财报检索上下文，回答用户的查询。
-            要求：
-            1. 必须基于知识库内容回答，若知识库中无相关数据，请明确说明。
-            2. 引用数据时，请标明数据源自哪份文档。
-            3. 若用户询问基本面，请使用 Markdown 表格形式展示核心财务指标。
-            4. 保持客观、专业、简练的投研语调。
 
-            用户的问题是：
-            {{#start.user_query#}}
-      id: llm_fundamental
+            ## 输入
+
+            - 知识库上下文：财报检索结果（{{#context#}}）
+
+            - 用户问题：{{#1783753345838.user_query#}}
+
+            - 目标标的：{{#1783753345838.stock_symbol#}}
+
+
+            ## 任务
+
+            根据知识库上下文回答用户的财务基本面问题。
+
+
+            ## 回答规则
+
+            1. **严格基于上下文**：只使用知识库中提供的财报数据，不编造、不推测。
+
+            2. **空上下文处理**：如果上下文中没有与用户问题相关的数据，直接回答："当前知识库中未包含该数据。知识库覆盖范围：腾讯2025年度报告（全年）及2025中期报告（上半年累计）。建议您调整查询口径，例如询问全年或上半年的累计数据。"——不要用通用知识补充。
+
+            3. **数据溯源**：引用任何数字时，标注数据来源文档（如"数据源自：腾讯2025年度报告 MD&A 章节"）。
+
+            4. **表格呈现**：涉及财务指标对比时，用 Markdown 表格呈现，包含：指标名称、本期数值、同比变化。
+
+            5. **语调**：客观、专业、简练，避免过度解读或情绪化表达。
+
+
+            ## 输出格式
+
+            ### 核心结论
+
+            （一句话总结）
+
+
+            ### 数据明细
+
+            （Markdown 表格或关键数据列表）
+
+
+            ### 同比分析
+
+            （与上一期的对比解读）
+
+
+            ### 数据来源
+
+            （标注具体文档和章节）'
+        selected: false
+        title: LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '1783849457766'
+      position:
+        x: 981.3451757121247
+        y: 303
+      positionAbsolute:
+        x: 981.3451757121247
+        y: 303
+      selected: false
+      sourcePosition: right
+      targetPosition: left
       type: custom
       width: 242
-      height: 88
-      position:
-        x: 981
-        y: 303
     - data:
-        title: 输出 - 基本面
-        type: end
         outputs:
         - value_selector:
-          - llm_fundamental
+          - '1783849457766'
           - text
           value_type: string
           variable: text
-      id: end_fundamental
-      type: custom
-      width: 242
-      height: 88
-      position:
-        x: 1560
-        y: 303
-    - data:
-        title: Serper 搜索
-        type: tool
-        plugin_unique_identifier: langgenius/serper:0.0.7@76f66a0eda2698a74d7b13f3e2ea6da676f214fa11ea3ea2a009714c492722b0
-        provider_id: langgenius/serper/serper
-        provider_name: Serper
-        tool_name: serper
-        tool_label: Serper
-        tool_parameters:
-          query:
-            type: mixed
-            value: '{{#start.stock_symbol#}}'
-      id: serper_search
-      type: custom
-      width: 242
-      height: 52
-      position:
-        x: 690
-        y: 435
-    - data:
-        title: LLM - 市场情绪
-        type: llm
-        model:
-          mode: chat
-          name: deepseek-v4-pro
-          provider: langgenius/deepseek/deepseek
-          completion_params:
-            temperature: 0.7
-        context:
-          enabled: true
-          variable_selector:
-          - serper_search
-          - text
-        prompt_template:
-        - role: system
-          text: |
-            你是一位专业的金融市场情绪分析师。
-            请阅读上下文（Context）中提供的最新搜索结果。
-            请结合这些搜索到的资讯，分析 {{#start.stock_symbol#}} 的市场情绪。
-            输出：【偏多】、【偏空】或【中性】。
-            用 2-3 句话解释理由。
-      id: llm_sentiment
-      type: custom
-      width: 242
-      height: 88
-      position:
-        x: 981
-        y: 435
-    - data:
-        title: 输出 - 市场情绪
+        selected: false
+        title: 输出
         type: end
-        outputs:
-        - value_selector:
-          - llm_sentiment
-          - text
-          value_type: string
-          variable: text2
-      id: end_sentiment
+      height: 88
+      id: '1783849918047'
+      position:
+        x: 1560.6933816615012
+        y: 303
+      positionAbsolute:
+        x: 1560.6933816615012
+        y: 303
+      selected: false
+      sourcePosition: right
+      targetPosition: left
       type: custom
       width: 242
-      height: 88
-      position:
-        x: 1560
-        y: 435
     - data:
-        title: HTTP 请求 - Tushare
-        type: http-request
-        method: post
-        url: http://api.tushare.pro
         authorization:
+          config: null
           type: no-auth
         body:
-          type: json
           data:
-          - key: ''
+          - id: key-value-155
+            key: ''
             type: text
-            value: |
-              {
-                  "api_name": "hk_daily",
-                  "token": "{{#environment_variables.TUSHARE_TOKEN#}}",
-                  "params": {
-                      "ts_code": "{{#start.stock_symbol#}}"
-                  },
-                  "fields": "ts_code,trade_date,open,high,low,close,vol"
-              }
+            value: "{\n    \"api_name\": \"hk_daily\",\n    \"token\": \"{{#environment_variables.TUSHARE_TOKEN#}}\"\
+              ,\n    \"params\": {\n        \"ts_code\": \"{{#1783753345838.stock_symbol#}}\"\
+              \n    },\n    \"fields\": \"ts_code,trade_date,open,high,low,close,vol\"\
+              \n}"
+          type: json
+        headers: ''
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 3
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
         timeout:
           max_connect_timeout: 0
           max_read_timeout: 0
           max_write_timeout: 0
-        retry_config:
-          retry_enabled: true
-          max_retries: 3
-          retry_interval: 100
-      id: tushare_http
+        title: HTTP 请求
+        type: http-request
+        url: http://api.tushare.pro
+        variables: []
+      height: 121
+      id: '1783921892044'
+      position:
+        x: 690.4616602000784
+        y: 606.93473636908
+      positionAbsolute:
+        x: 690.4616602000784
+        y: 606.93473636908
+      selected: false
+      sourcePosition: right
+      targetPosition: left
       type: custom
       width: 242
-      height: 121
-      position:
-        x: 690
-        y: 607
     - data:
-        title: 代码执行 - 量化计算
-        type: code
+        code: "function main({ http_body }) {\n    try {\n        // 解析 HTTP 节点传过来的\
+          \ JSON 字符串\n        const res = JSON.parse(http_body);\n        const items\
+          \ = res.data.items;\n\n        if (!items || items.length === 0) {\n   \
+          \         return { result: \"未能获取到有效的行情数据\" };\n        }\n\n        //\
+          \ Tushare 数据格式：[\"ts_code\", \"trade_date\", \"open\", \"high\", \"low\"\
+          , \"close\", \"vol\"]\n        // 收盘价 close 在索引 5，日期在索引 1\n        let prices\
+          \ = [];\n        // 取最近 5 个交易日的数据\n        for(let i = 0; i < Math.min(5,\
+          \ items.length); i++) {\n            prices.push({\n                date:\
+          \ items[i][1],\n                close: items[i][5]\n            });\n  \
+          \      }\n\n        // 计算 5 日均线 (MA5)\n        let sum = 0;\n        prices.forEach(p\
+          \ => sum += p.close);\n        let ma5 = (sum / prices.length).toFixed(2);\n\
+          \        let latestClose = prices[0].close;\n\n        // 生成给 LLM 看的文字报告\n\
+          \        let analysis = `量化数据提取成功：\\n最新收盘价: ${latestClose}\\n5日均线 (MA5):\
+          \ ${ma5}\\n`;\n        if (latestClose > ma5) {\n            analysis +=\
+          \ \"技术面特征: 当前收盘价已站上5日均线，呈现短期多头排列。\";\n        } else {\n            analysis\
+          \ += \"技术面特征: 当前收盘价低于5日均线，呈现短期空头排列。\";\n        }\n\n        return {\n\
+          \            result: analysis\n        };\n    } catch (e) {\n        return\
+          \ { result: \"数据清洗与计算失败: \" + e.message };\n    }\n}"
         code_language: javascript
-        code: |
-          function main({ http_body }) {
-              try {
-                  const res = JSON.parse(http_body);
-                  const items = res.data.items;
-                  if (!items || items.length === 0) {
-                      return { result: "未能获取到有效的行情数据" };
-                  }
-                  let prices = [];
-                  for(let i = 0; i < Math.min(5, items.length); i++) {
-                      prices.push({
-                          date: items[i][1],
-                          close: items[i][5]
-                      });
-                  }
-                  let sum = 0;
-                  prices.forEach(p => sum += p.close);
-                  let ma5 = (sum / prices.length).toFixed(2);
-                  let latestClose = prices[0].close;
-                  let analysis = `量化数据提取成功：\n最新收盘价: ${latestClose}\n5日均线 (MA5): ${ma5}\n`;
-                  if (latestClose > ma5) {
-                      analysis += "技术面特征: 当前收盘价已站上5日均线，呈现短期多头排列。";
-                  } else {
-                      analysis += "技术面特征: 当前收盘价低于5日均线，呈现短期空头排列。";
-                  }
-                  return { result: analysis };
-              } catch (e) {
-                  return { result: "数据清洗与计算失败: " + e.message };
-              }
-          }
+        outputs:
+          result:
+            children: null
+            type: string
+        selected: false
+        title: 代码执行
+        type: code
         variables:
         - value_selector:
-          - tushare_http
+          - '1783921892044'
           - body
           value_type: string
           variable: http_body
-        outputs:
-          result:
-            type: string
-            children: null
-      id: quant_compute
+      height: 52
+      id: '1783996135613'
+      position:
+        x: 981.3451757121247
+        y: 606.93473636908
+      positionAbsolute:
+        x: 981.3451757121247
+        y: 606.93473636908
+      selected: false
+      sourcePosition: right
+      targetPosition: left
       type: custom
       width: 242
-      height: 52
-      position:
-        x: 981
-        y: 607
     - data:
-        title: LLM - 量化分析
-        type: llm
-        model:
-          mode: chat
-          name: deepseek-v4-pro
-          provider: langgenius/deepseek/deepseek
-          completion_params:
-            temperature: 0.7
         context:
           enabled: true
           variable_selector:
-          - quant_compute
+          - '1783996135613'
           - result
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: deepseek-v4-pro
+          provider: langgenius/deepseek/deepseek
         prompt_template:
-        - role: system
-          text: |
-            请根据以下系统计算出的量化因子数据，用专业的金融分析师口吻，给用户写一段简短的技术面分析报告：
-            {{#quant_compute.result#}}
-      id: llm_quant
+        - id: c9309559-541e-4659-8116-dc4d0bb783a0
+          role: system
+          text: "你是一位专业的量化技术分析师，擅长从行情数据中提炼技术面信号。\n\n## 输入\n- 量化数据：系统计算出的行情指标（{{#1783996135613.result#}}）\n\
+            - 目标标的：{{#1783753345838.stock_symbol#}}\n\n## 任务\n根据量化因子数据，输出一段简短但结构清晰的技术面分析报告。\n\
+            \n## 分析规则\n1. **严格基于数据**：只使用系统提供的收盘价、均线等数据，不编造数值。\n2. **空数据处理**：如果量化数据为空或提示\"\
+            未能获取\"，回答：\"未能获取 {{#1783753345838.stock_symbol#}} 的行情数据，无法进行技术面分析。可能原因：Tushare\
+            \ API 请求失败或数据源暂时不可用。\"\n3. **技术信号解读**：\n   - 收盘价 > MA5 → 短期多头信号（价格站上均线）\n\
+            \   - 收盘价 < MA5 → 短期空头信号（价格跌破均线）\n   - 结合成交量(vol)判断信号强度\n\n## 输出格式\n###\
+            \ 技术面判断\n短期趋势：【多头排列】/【空头排列】\n\n### 关键指标\n| 指标 | 数值 |\n|------|------|\n\
+            | 最新收盘价 | xxx |\n| 5日均线(MA5) | xxx |\n| 偏离度 | xxx% |\n\n### 信号解读\n（2-3句话解读技术面含义及潜在风险）"
+        selected: false
+        title: LLM 2
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '1783996431126'
+      position:
+        x: 1281.8815677403343
+        y: 606.93473636908
+      positionAbsolute:
+        x: 1281.8815677403343
+        y: 606.93473636908
+      selected: false
+      sourcePosition: right
+      targetPosition: left
       type: custom
       width: 242
-      height: 88
-      position:
-        x: 1282
-        y: 607
     - data:
-        title: 输出 - 量化分析
-        type: end
         outputs:
         - value_selector:
-          - llm_quant
+          - '1783996431126'
           - text
           value_type: string
           variable: text3
-      id: end_quant
+        selected: false
+        title: 输出 2
+        type: end
+      height: 88
+      id: '1783996646956'
+      position:
+        x: 1560.6933816615012
+        y: 606.93473636908
+      positionAbsolute:
+        x: 1560.6933816615012
+        y: 606.93473636908
+      selected: false
+      sourcePosition: right
+      targetPosition: left
       type: custom
       width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - '1784007013296'
+          - text
+          value_type: string
+          variable: text2
+        selected: false
+        title: 输出 3
+        type: end
       height: 88
+      id: '1783999157754'
       position:
-        x: 1560
-        y: 607
+        x: 1560.6933816615012
+        y: 434.75395952636353
+      positionAbsolute:
+        x: 1560.6933816615012
+        y: 434.75395952636353
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        paramSchemas:
+        - auto_generate: null
+          default: null
+          form: llm
+          human_description:
+            en_US: used for searching
+            ja_JP: used for searching
+            pt_BR: used for searching
+            zh_Hans: 用于搜索网页内容
+          label:
+            en_US: Query string
+            ja_JP: Query string
+            pt_BR: Query string
+            zh_Hans: 查询语句
+          llm_description: key words for searching
+          max: null
+          min: null
+          name: query
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        params:
+          query: ''
+        plugin_id: langgenius/serper
+        plugin_unique_identifier: langgenius/serper:0.0.7@76f66a0eda2698a74d7b13f3e2ea6da676f214fa11ea3ea2a009714c492722b0
+        provider_id: langgenius/serper/serper
+        provider_name: langgenius/serper/serper
+        provider_show_name: Serper
+        provider_type: builtin
+        selected: false
+        title: Serper
+        tool_configurations: {}
+        tool_description: 一个用于执行 Google 搜索并提取片段和网页的工具。输入应该是一个搜索查询。
+        tool_label: Serper
+        tool_name: serper
+        tool_node_version: '2'
+        tool_parameters:
+          query:
+            type: mixed
+            value: '{{#1783753345838.stock_symbol#}} {{#1783753345838.user_query#}}'
+        type: tool
+      height: 52
+      id: '1784000236368'
+      position:
+        x: 690.4616602000784
+        y: 434.75395952636353
+      positionAbsolute:
+        x: 690.4616602000784
+        y: 434.75395952636353
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1784000236368'
+          - text
+        model:
+          completion_params:
+            temperature: 0.7
+            top_p: 0.4
+          mode: chat
+          name: deepseek-v4-pro
+          provider: langgenius/deepseek/deepseek
+        prompt_template:
+        - id: 5a386985-b0ff-4cb2-ae9a-a68075b0a53f
+          role: system
+          text: "你是一位专业的金融市场情绪分析师，擅长从新闻资讯中提炼市场情绪信号。\n\n## 输入\n- 搜索上下文：Serper 返回的最新资讯（{{#context#}}）\n\
+            - 目标标的：{{#1783753345838.stock_symbol#}}\n\n## 任务\n分析 {{#1783753345838.stock_symbol#}}\
+            \ 当前市场情绪。\n\n## 分析规则\n1. **严格基于搜索结果**：只从上下文中的资讯提炼情绪，不编造新闻。\n2. **空上下文处理**：如果上下文中没有搜索结果（为空或无相关内容），回答：\"\
+            未能获取到 {{#1783753345838.stock_symbol#}} 的最新搜索资讯，无法判断当前市场情绪。可能原因：搜索关键词过于宽泛或\
+            \ Serper 服务暂时不可用。建议您更换更具体的问题，如'腾讯视频号商业化进展'或'腾讯最新财报发布后的市场反应'。\"\n3. **情绪判断标准**：\n\
+            \   - 偏多：存在明确利好消息（业绩超预期、新产品爆发、政策利好等）\n   - 偏空：存在明确利空消息（业绩不及预期、监管风险、核心业务下滑等）\n\
+            \   - 中性：利好利空交织，或资讯不足以判断方向\n\n## 输出格式\n### 情绪判断\n【偏多】/【偏空】/【中性】\n\n###\
+            \ 关键事件\n（列出2-3条影响情绪的核心新闻，每条附来源）\n\n### 情绪解读\n（2-3句话解释判断理由，引用具体资讯内容）"
+        selected: false
+        structured_output_enabled: false
+        title: LLM 3
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '1784007013296'
+      position:
+        x: 981.3451757121247
+        y: 434.75395952636353
+      positionAbsolute:
+        x: 981.3451757121247
+        y: 434.75395952636353
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: -183.64319971151997
+      y: 13.417335967059273
+      zoom: 0.8429855377743704
+  rag_pipeline_variables: []
