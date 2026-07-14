@@ -1,0 +1,12 @@
+# Core dependencies for PDF preprocessing
+PyMuPDF>=1.24.0
+pdfplumber>=0.11.0
+
+# Optional: Tushare Pro SDK (for standalone quant data fetching)
+tushare>=1.4.0
+
+# Optional: Dify API client (for automated testing)
+requests>=2.31.0
+
+# Optional: vector store for local RAG testing
+chromadb>=0.5.0

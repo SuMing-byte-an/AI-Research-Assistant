@@ -1,0 +1,450 @@
+app:
+  description: 接收用户的查询，利用分类器判断意图，然后分别调用本地知识库检索、实时搜索和量化数据计算，最后由大模型统一汇总输出结构化报告。
+  icon: "\U0001F916"
+  icon_background: '#FFEAD5'
+  icon_type: emoji
+  mode: workflow
+  name: AI 投研多路融合分析助手
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables:
+  - description: Tushare Pro API token for fetching HK stock daily data
+    id: tushare_token
+    name: TUSHARE_TOKEN
+    value_type: string
+    value: ''
+  features:
+    file_upload:
+      enabled: false
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    suggested_questions_after_answer:
+      enabled: false
+  graph:
+    edges:
+    - data:
+        sourceType: start
+        targetType: question-classifier
+      id: start-classifier
+      source: start
+      sourceHandle: source
+      target: classifier
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: question-classifier
+        targetType: knowledge-retrieval
+      id: classifier-fundamental-kb
+      source: classifier
+      sourceHandle: '1'
+      target: kb_retrieval
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: kb-llm
+      source: kb_retrieval
+      sourceHandle: source
+      target: llm_fundamental
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: end
+      id: llm-fundamental-end
+      source: llm_fundamental
+      sourceHandle: source
+      target: end_fundamental
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: question-classifier
+        targetType: tool
+      id: classifier-sentiment-serper
+      source: classifier
+      sourceHandle: '2'
+      target: serper_search
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: tool
+        targetType: llm
+      id: serper-llm
+      source: serper_search
+      sourceHandle: source
+      target: llm_sentiment
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: end
+      id: llm-sentiment-end
+      source: llm_sentiment
+      sourceHandle: source
+      target: end_sentiment
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: question-classifier
+        targetType: http-request
+      id: classifier-quant-http
+      source: classifier
+      sourceHandle: '3'
+      target: tushare_http
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: http-request
+        targetType: code
+      id: http-code
+      source: tushare_http
+      sourceHandle: source
+      target: quant_compute
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: code
+        targetType: llm
+      id: code-llm
+      source: quant_compute
+      sourceHandle: source
+      target: llm_quant
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: end
+      id: llm-quant-end
+      source: llm_quant
+      sourceHandle: source
+      target: end_quant
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        title: 用户输入
+        type: start
+        variables:
+        - label: user_query
+          variable: user_query
+          type: text-input
+          required: true
+          default: '帮我分析一下这家公司近期的财务表现和市场情绪。'
+          max_length: 256
+        - label: stock_symbol
+          variable: stock_symbol
+          type: text-input
+          required: false
+          default: '00700.HK'
+          max_length: 20
+      id: start
+      type: custom
+      width: 242
+      height: 135
+      position:
+        x: 80
+        y: 282
+    - data:
+        title: 问题分类器
+        type: question-classifier
+        model:
+          mode: chat
+          name: deepseek-v4-pro
+          provider: langgenius/deepseek/deepseek
+          completion_params:
+            temperature: 0.1
+            max_tokens: 128
+        classes:
+        - id: '1'
+          label: fundamental
+          name: '当用户询问公司的基本面、财报数据、营收表现、利润率、净利润、债务情况或者财务健康度时，路由到此分支。例如："分析一下这家公司的财务状况"'
+        - id: '2'
+          label: sentiment
+          name: '当用户询问市场情绪、近期新闻、热点舆情、宏观事件、行业科技动态或大众对该股票的态度时，路由到此分支。例如："最近有什么利好新闻吗"'
+        - id: '3'
+          label: quant
+          name: '当用户询问技术面指标、量化因子、K线走势、均线背离、资金流向或交易信号预警时，路由到此分支。例如："目前技术面上有什么风险"'
+        query_variable_selector:
+        - start
+        - user_query
+      id: classifier
+      type: custom
+      width: 242
+      height: 220
+      position:
+        x: 409
+        y: 303
+    - data:
+        title: 知识检索
+        type: knowledge-retrieval
+        dataset_ids:
+        - '<YOUR_DATASET_ID>'
+        retrieval_mode: multiple
+        multiple_retrieval_config:
+          reranking_enable: true
+          reranking_mode: reranking_model
+          reranking_model:
+            model: BAAI/bge-reranker-v2-m3
+            provider: langgenius/siliconflow/siliconflow
+          score_threshold: 0.1
+          top_k: 5
+        query_variable_selector:
+        - start
+        - user_query
+      id: kb_retrieval
+      type: custom
+      width: 242
+      height: 90
+      position:
+        x: 690
+        y: 303
+    - data:
+        title: LLM - 基本面分析
+        type: llm
+        model:
+          mode: chat
+          name: deepseek-v4-pro
+          provider: langgenius/deepseek/deepseek
+          completion_params:
+            temperature: 0.7
+        context:
+          enabled: true
+          variable_selector:
+          - kb_retrieval
+          - result
+        prompt_template:
+        - role: system
+          text: |
+            请基于以下上下文回答问题：{{#context#}}
+
+            角色设定：你是一名专业的金融分析师。
+            任务：请根据提供的财报检索上下文，回答用户的查询。
+            要求：
+            1. 必须基于知识库内容回答，若知识库中无相关数据，请明确说明。
+            2. 引用数据时，请标明数据源自哪份文档。
+            3. 若用户询问基本面，请使用 Markdown 表格形式展示核心财务指标。
+            4. 保持客观、专业、简练的投研语调。
+
+            用户的问题是：
+            {{#start.user_query#}}
+      id: llm_fundamental
+      type: custom
+      width: 242
+      height: 88
+      position:
+        x: 981
+        y: 303
+    - data:
+        title: 输出 - 基本面
+        type: end
+        outputs:
+        - value_selector:
+          - llm_fundamental
+          - text
+          value_type: string
+          variable: text
+      id: end_fundamental
+      type: custom
+      width: 242
+      height: 88
+      position:
+        x: 1560
+        y: 303
+    - data:
+        title: Serper 搜索
+        type: tool
+        plugin_unique_identifier: langgenius/serper:0.0.7@76f66a0eda2698a74d7b13f3e2ea6da676f214fa11ea3ea2a009714c492722b0
+        provider_id: langgenius/serper/serper
+        provider_name: Serper
+        tool_name: serper
+        tool_label: Serper
+        tool_parameters:
+          query:
+            type: mixed
+            value: '{{#start.stock_symbol#}}'
+      id: serper_search
+      type: custom
+      width: 242
+      height: 52
+      position:
+        x: 690
+        y: 435
+    - data:
+        title: LLM - 市场情绪
+        type: llm
+        model:
+          mode: chat
+          name: deepseek-v4-pro
+          provider: langgenius/deepseek/deepseek
+          completion_params:
+            temperature: 0.7
+        context:
+          enabled: true
+          variable_selector:
+          - serper_search
+          - text
+        prompt_template:
+        - role: system
+          text: |
+            你是一位专业的金融市场情绪分析师。
+            请阅读上下文（Context）中提供的最新搜索结果。
+            请结合这些搜索到的资讯，分析 {{#start.stock_symbol#}} 的市场情绪。
+            输出：【偏多】、【偏空】或【中性】。
+            用 2-3 句话解释理由。
+      id: llm_sentiment
+      type: custom
+      width: 242
+      height: 88
+      position:
+        x: 981
+        y: 435
+    - data:
+        title: 输出 - 市场情绪
+        type: end
+        outputs:
+        - value_selector:
+          - llm_sentiment
+          - text
+          value_type: string
+          variable: text2
+      id: end_sentiment
+      type: custom
+      width: 242
+      height: 88
+      position:
+        x: 1560
+        y: 435
+    - data:
+        title: HTTP 请求 - Tushare
+        type: http-request
+        method: post
+        url: http://api.tushare.pro
+        authorization:
+          type: no-auth
+        body:
+          type: json
+          data:
+          - key: ''
+            type: text
+            value: |
+              {
+                  "api_name": "hk_daily",
+                  "token": "{{#environment_variables.TUSHARE_TOKEN#}}",
+                  "params": {
+                      "ts_code": "{{#start.stock_symbol#}}"
+                  },
+                  "fields": "ts_code,trade_date,open,high,low,close,vol"
+              }
+        timeout:
+          max_connect_timeout: 0
+          max_read_timeout: 0
+          max_write_timeout: 0
+        retry_config:
+          retry_enabled: true
+          max_retries: 3
+          retry_interval: 100
+      id: tushare_http
+      type: custom
+      width: 242
+      height: 121
+      position:
+        x: 690
+        y: 607
+    - data:
+        title: 代码执行 - 量化计算
+        type: code
+        code_language: javascript
+        code: |
+          function main({ http_body }) {
+              try {
+                  const res = JSON.parse(http_body);
+                  const items = res.data.items;
+                  if (!items || items.length === 0) {
+                      return { result: "未能获取到有效的行情数据" };
+                  }
+                  let prices = [];
+                  for(let i = 0; i < Math.min(5, items.length); i++) {
+                      prices.push({
+                          date: items[i][1],
+                          close: items[i][5]
+                      });
+                  }
+                  let sum = 0;
+                  prices.forEach(p => sum += p.close);
+                  let ma5 = (sum / prices.length).toFixed(2);
+                  let latestClose = prices[0].close;
+                  let analysis = `量化数据提取成功：\n最新收盘价: ${latestClose}\n5日均线 (MA5): ${ma5}\n`;
+                  if (latestClose > ma5) {
+                      analysis += "技术面特征: 当前收盘价已站上5日均线，呈现短期多头排列。";
+                  } else {
+                      analysis += "技术面特征: 当前收盘价低于5日均线，呈现短期空头排列。";
+                  }
+                  return { result: analysis };
+              } catch (e) {
+                  return { result: "数据清洗与计算失败: " + e.message };
+              }
+          }
+        variables:
+        - value_selector:
+          - tushare_http
+          - body
+          value_type: string
+          variable: http_body
+        outputs:
+          result:
+            type: string
+            children: null
+      id: quant_compute
+      type: custom
+      width: 242
+      height: 52
+      position:
+        x: 981
+        y: 607
+    - data:
+        title: LLM - 量化分析
+        type: llm
+        model:
+          mode: chat
+          name: deepseek-v4-pro
+          provider: langgenius/deepseek/deepseek
+          completion_params:
+            temperature: 0.7
+        context:
+          enabled: true
+          variable_selector:
+          - quant_compute
+          - result
+        prompt_template:
+        - role: system
+          text: |
+            请根据以下系统计算出的量化因子数据，用专业的金融分析师口吻，给用户写一段简短的技术面分析报告：
+            {{#quant_compute.result#}}
+      id: llm_quant
+      type: custom
+      width: 242
+      height: 88
+      position:
+        x: 1282
+        y: 607
+    - data:
+        title: 输出 - 量化分析
+        type: end
+        outputs:
+        - value_selector:
+          - llm_quant
+          - text
+          value_type: string
+          variable: text3
+      id: end_quant
+      type: custom
+      width: 242
+      height: 88
+      position:
+        x: 1560
+        y: 607
