@@ -41,6 +41,12 @@
 
 ![Sentiment Branch](docs/screenshots/sentiment_branch.png)
 
+### 量化技术面分支示例（Tushare + Code 执行）
+
+查询腾讯港股 5 日均线与偏离度，系统通过 Tushare 拉取日线数据、Code 节点计算 MA5，由 LLM 给出短期技术面判断。
+
+![Quant Branch](docs/screenshots/quant_branch.png)
+
 ## 项目组成
 
 ### 1. Dify 工作流 DSL (`dify/workflow_dsl.yml`)
